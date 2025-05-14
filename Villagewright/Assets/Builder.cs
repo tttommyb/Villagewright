@@ -82,7 +82,10 @@ public class Builder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(raid.transform.childCount > 0) 
+        Camera.main.GetComponent<TiltShift>().Offset = -((Screen.height / 2) - Input.mousePosition.y) / (Screen.height / 2);
+        Camera.main.GetComponent<TiltShift>().XOffset = -((Screen.width / 2) - Input.mousePosition.x) / (Screen.width / 2);
+
+        if (raid.transform.childCount > 0) 
         {
             return;
         }
@@ -105,7 +108,7 @@ public class Builder : MonoBehaviour
 
         
 
-        Camera.main.GetComponent<TiltShift>().Offset = ((Screen.height / 2) - Input.mousePosition.y) / (Screen.height / 2);
+        
 
 
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);

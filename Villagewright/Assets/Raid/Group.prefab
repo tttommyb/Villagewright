@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7249458300843470007}
   - component: {fileID: 8902128821561599345}
   - component: {fileID: 882111785747028736}
+  - component: {fileID: -2710777605048868421}
   m_Layer: 7
   m_Name: Group
   m_TagString: Untagged
@@ -115,6 +116,24 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.24, y: 2.7706623, z: 2.7748778}
   m_Center: {x: 2.856037, y: -1.6046686, z: -2.3110988}
+--- !u!114 &-2710777605048868421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6418518671321009812}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07696c8063ebf274eb149c6195839ae2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gate: {fileID: 0}
+  exit: {fileID: 0}
+  rb: {fileID: 0}
+  village_trigger: {fileID: 0}
+  fire_prefab: {fileID: 0}
+  fire_effect: {fileID: 0}
 --- !u!1001 &649832484719722047
 PrefabInstance:
   m_ObjectHideFlags: 0

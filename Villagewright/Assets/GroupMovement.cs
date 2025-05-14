@@ -13,6 +13,11 @@ public class GroupMovement : MonoBehaviour
     [SerializeField] private BoxCollider village_trigger;
 
     private List<GameObject> attack_points;
+
+    [SerializeField] private GameObject fire_prefab;
+
+    [SerializeField] private GameObject fire_effect;
+
     Vector3 target;
     GameObject target_gameobject;
 
@@ -22,6 +27,8 @@ public class GroupMovement : MonoBehaviour
 
     private void Start()
     {
+        rb = GetComponent<Rigidbody>();
+
         target = gate.position;
 
         Scene currentScene = SceneManager.GetActiveScene();
@@ -64,6 +71,8 @@ public class GroupMovement : MonoBehaviour
                     return;
                 }
                 reached = true;
+                fire_effect = Instantiate(fire_prefab);
+                fire_effect.transform.position = target_gameobject.transform.position;
                 target_gameobject.transform.parent.transform.parent.transform.position = Vector3.zero;
                 target = new Vector3(gate.position.x, this.transform.position.y,gate.position.z);
             }
