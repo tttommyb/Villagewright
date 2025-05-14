@@ -396,6 +396,7 @@
 "Assets/Polyart/PolyartStudio/SharedResources/Scripts/Gameplay/MillRotate.cs"
 "Assets/Polyart/PolyartStudio/SharedResources/Scripts/Misc/Cull_Lights.cs"
 "Assets/Polyart/PolyartStudio/SharedResources/Scripts/Misc/Cull_Particles.cs"
+"Assets/Spin.cs"
 "Assets/TiltShift-master/TiltShift-master/Tilt Shift/Scripts/TiltShift.cs"
 -langversion:9.0
 

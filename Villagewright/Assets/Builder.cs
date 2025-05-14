@@ -14,6 +14,10 @@ public class Builder : MonoBehaviour
 
     [SerializeField] private GameObject rotation_circle;
 
+    [SerializeField] private GameObject grid_renderer;
+
+    [SerializeField] private GameObject scroll_bar;
+
     public int selection = -1;
     public int current_structure_index = -1;
 
@@ -29,6 +33,7 @@ public class Builder : MonoBehaviour
 
     List<GameObject> objects;
 
+    [SerializeField] GameObject raid;
 
     Dictionary<string, List<Vector3>> starting_positions = new Dictionary<string, List<Vector3>>();
     Dictionary<string, List<Quaternion>> starting_rotations = new Dictionary<string, List<Quaternion>>();
@@ -69,7 +74,6 @@ public class Builder : MonoBehaviour
                     list.Add(@object);
                     inventory.Add(list);
                 }
-                @object.transform.position = Vector3.zero;
             }
         }
 
@@ -78,6 +82,12 @@ public class Builder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(raid.transform.childCount > 0) 
+        {
+            return;
+        }
+        scroll_bar.SetActive(true);
+        grid_renderer.SetActive(true);
         //Instantiates the selected object into the scene 
 
         if(current_structure_index != selection) 
@@ -112,6 +122,22 @@ public class Builder : MonoBehaviour
         //If the R key is hold then rotate the object with mouse
         rotation_circle.GetComponent<SpriteRenderer>().enabled = false;
 
+
+        if (Physics.Raycast(ray, out hit, 1000f, LayerMask.GetMask("Structure")))
+        {
+            if (hit.point != null && current_structure == null)
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+
+                    Debug.Log(hit.collider.gameObject.name);
+                    current_structure = hit.collider.gameObject;
+                    current_structure.GetComponent<BoxCollider>().enabled = false;
+                    return;
+                }
+            }
+        }
+
         if (Input.GetKey(KeyCode.R))
         {
             rotation_circle.GetComponent<SpriteRenderer>().enabled = true;
@@ -124,6 +150,8 @@ public class Builder : MonoBehaviour
                 current_structure.transform.rotation = Quaternion.Euler(euler);
             }
         }
+
+        
 
         //If the player isnt rotating, then follow the mouse
         else if (Physics.Raycast(ray, out hit, 1000f,LayerMask.GetMask("Ground")))
@@ -138,6 +166,7 @@ public class Builder : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && current_structure != null) 
         {
+            current_structure.GetComponent<BoxCollider>().enabled = true;
             foreach (List<GameObject> items in inventory)
             {
                 if (items[0].tag == current_structure.tag)

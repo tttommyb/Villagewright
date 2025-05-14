@@ -15,14 +15,15 @@
 		#include "UnityCG.cginc"
 
 		sampler2D _MainTex;
-		half3 _Gradient;
+		half4 _Gradient;
 		half4 _GoldenRot;
 		half4 _Distortion;
 		half4 _Params;
 
-		#define Offset _Gradient.x
-		#define Area _Gradient.y
-		#define Spread _Gradient.z
+		#define XOffset _Gradient.x
+		#define YOffset _Gradient.y
+		#define Area _Gradient.z
+		#define Spread _Gradient.w
 		#define Samples _Params.x
 		#define Radius _Params.y
 		#define PixelSize _Params.zw
@@ -39,8 +40,10 @@
 			#endif
 
 			// Gradient
-			half2 coord = uv * 2.0 - 1.0 + Offset;
-			return pow(abs(coord.y * Area), Spread);
+			half2 coord = uv * 2.0 - 1.0;
+			coord -= half2(XOffset, YOffset);
+			return pow(length(coord * Area), Spread);
+
 		}
 
 		half4 frag_preview(v2f_img i) : SV_Target
@@ -66,7 +69,7 @@
 				accumulator += bokeh * bokeh;
 				divisor += bokeh;
 			}
-
+			
 			return accumulator / divisor;
 		}
 

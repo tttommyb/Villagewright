@@ -16,7 +16,7 @@ public class DisplayInventory : MonoBehaviour
     [SerializeField] private GameObject player;
     [SerializeField] private Font font;
 
-    void Start()
+    void OnEnable()
     {
         
         int i = 0;

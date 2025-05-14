@@ -11,7 +11,10 @@
 		[Range(-1f, 1f)]
 		public float Offset = 0f;
 
-		[Range(0f, 20f)]
+        [Range(-1f, 1f)]
+        public float XOffset = 0f;
+
+        [Range(0f, 20f)]
 		public float Area = 1f;
 
 		[Range(0f, 20f)]
@@ -87,8 +90,8 @@
 				Material.DisableKeyword("USE_DISTORTION");
 
 			Material.SetVector("_GoldenRot", m_GoldenRot);
-			Material.SetVector("_Gradient", new Vector3(Offset, Area, Spread));
-			Material.SetVector("_Distortion", new Vector2(CubicDistortion, DistortionScale));
+            Material.SetVector("_Gradient", new Vector4(XOffset, Offset, Area, Spread));
+            Material.SetVector("_Distortion", new Vector2(CubicDistortion, DistortionScale));
 			Material.SetVector("_Params", new Vector4(Samples, Radius, 1f / source.width, 1f / source.height));
 			Graphics.Blit(source, destination, Material, Preview ? 0 : 1);
 		}

@@ -33,15 +33,15 @@ public class GridRenderer : MonoBehaviour
 
         for (int x = -gridExtent; x <= gridExtent; x++)
         {
-            GL.Vertex(new Vector3(x * gridSize + (gridSize / 2), gridHeight, -gridExtent * gridSize));
-            GL.Vertex(new Vector3(x * gridSize + (gridSize / 2), gridHeight, gridExtent * gridSize));
+            GL.Vertex(new Vector3(transform.position.x + (x * gridSize) + (gridSize / 2), gridHeight, transform.position.z + (-gridExtent * gridSize)));
+            GL.Vertex(new Vector3(transform.position.x + (x * gridSize) + (gridSize / 2), gridHeight, transform.position.z + (gridExtent * gridSize)));
            
         }
 
         for (int z = -gridExtent; z <= gridExtent; z++)
         {
-            GL.Vertex(new Vector3(-gridExtent * gridSize, gridHeight, z * gridSize + (gridSize/2)));
-            GL.Vertex(new Vector3(gridExtent * gridSize, gridHeight, z * gridSize + (gridSize / 2)));
+            GL.Vertex(new Vector3(transform.position.x + (-gridExtent * gridSize), gridHeight, transform.position.z + (z * gridSize) + (gridSize / 2)));
+            GL.Vertex(new Vector3(transform.position.x + (gridExtent * gridSize), gridHeight, transform.position.z + (z * gridSize) + (gridSize / 2)));
         }
 
         GL.End();

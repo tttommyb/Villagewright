@@ -7,16 +7,17 @@ TagManager:
   - SingleHouse
   - QuadHouse
   - LongHouse
+  - AttackPoint
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Sprite
   - Water
   - UI
   - Ground
   - Group
-  - 
+  - Structure
   - 
   - 
   - 
