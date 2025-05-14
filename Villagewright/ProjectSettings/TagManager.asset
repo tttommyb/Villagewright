@@ -8,6 +8,8 @@ TagManager:
   - QuadHouse
   - LongHouse
   - AttackPoint
+  - Ruin
+  - Fire
   layers:
   - Default
   - TransparentFX

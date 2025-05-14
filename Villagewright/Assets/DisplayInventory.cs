@@ -16,6 +16,12 @@ public class DisplayInventory : MonoBehaviour
     [SerializeField] private GameObject player;
     [SerializeField] private Font font;
 
+    List<Transform> configured_objects = new List<Transform>();
+
+    float fade_speed = 0.25f;
+
+    bool faded = false;
+
     void OnEnable()
     {
         
@@ -40,6 +46,8 @@ public class DisplayInventory : MonoBehaviour
             i++;
             image_object.transform.SetParent(content.transform);
             text_object.transform.SetParent(image_object.transform);
+
+          
 
         }
     }
@@ -71,6 +79,57 @@ public class DisplayInventory : MonoBehaviour
         {
             removed_transform.SetParent(removed_icons.transform);
         }
+
+        bool allFaded = true;
+
+        foreach (List<GameObject> items in player.GetComponent<Builder>().inventory)
+        {
+            foreach (GameObject item in items)
+            {
+                ParticleSystem[] particles = item.GetComponentsInChildren<ParticleSystem>();
+                foreach (ParticleSystem particle in particles)
+                {
+                    particle.Stop();
+                }
+
+                foreach (Transform t in item.transform)
+                {
+                    if (t.tag == "Ruin")
+                    {
+                        foreach (Transform t2 in t)
+                        {
+                            if(t2.tag == "Fire") { continue; }
+                            Renderer renderer = t2.GetComponent<Renderer>();
+
+                            if (!configured_objects.Contains(t2))
+                            {
+                                initialiseFadeMaterial(renderer);
+                                configured_objects.Add(t2);
+                            }
+
+                            if (renderer != null && renderer.material != null)
+                            {
+                                Color color = renderer.material.color;
+                                if (color.a > 0)
+                                {
+                                    color.a -= fade_speed * Time.deltaTime;
+                                    Debug.Log(color.a);
+                                    renderer.material.color = color;
+                                    allFaded = false; // Still fading
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (allFaded)
+        {
+            faded = true;
+            //gameObject.SetActive(false); // or Destroy(gameObject);
+        }
+
     }
     public void buttonClick(string index) 
     {
@@ -78,6 +137,21 @@ public class DisplayInventory : MonoBehaviour
         {
             player.GetComponent<Builder>().selection = int.Parse(index);
         }
+    }
+
+    public void initialiseFadeMaterial(Renderer r) 
+    {
+        Material mat = r.material;
+
+        // ONE-TIME setup: Ensure the material supports transparency
+        mat.SetFloat("_Mode", 2); // Fade mode
+        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        mat.SetInt("_ZWrite", 0);
+        mat.DisableKeyword("_ALPHATEST_ON");
+        mat.EnableKeyword("_ALPHABLEND_ON");
+        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        mat.renderQueue = 3000;
     }
 
 }

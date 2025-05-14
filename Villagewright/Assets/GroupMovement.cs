@@ -16,7 +16,11 @@ public class GroupMovement : MonoBehaviour
 
     [SerializeField] private GameObject fire_prefab;
 
-    [SerializeField] private GameObject fire_effect;
+    [SerializeField] static private GameObject fire_effect;
+
+    [SerializeField] private GameObject[] ruins;
+
+
 
     Vector3 target;
     GameObject target_gameobject;
@@ -53,35 +57,51 @@ public class GroupMovement : MonoBehaviour
     {
         Debug.Log(target);   
         
-            Vector3 force = (target - this.transform.position).normalized;
-            force = new Vector3(force.x, 0, force.z);
-            rb.MovePosition(rb.position + (force * Time.deltaTime * 15f));
+        Vector3 force = (target - this.transform.position).normalized;
+        force = new Vector3(force.x, 0, force.z);
+        rb.MovePosition(rb.position + (force * Time.deltaTime * 15f));
 
-            if (village_trigger.bounds.Contains(rb.transform.position) && reached == false)
+        if (village_trigger.bounds.Contains(rb.transform.position) && reached == false)
+        {
+            target = new Vector3(attack_target.x, this.transform.position.y, attack_target.z);
+        }
+
+        if ((target - this.transform.position).magnitude < 2.5f)
+        {
+            if(reached == true)
             {
-                target = new Vector3(attack_target.x, this.transform.position.y, attack_target.z);
+                target = exit.transform.position;
+                InvokeRepeating("DeleteGroup", 5f, Mathf.Infinity);
+                return;
             }
-
-            if ((target - this.transform.position).magnitude < 2.5f)
+            reached = true;
+            if(fire_effect == null) 
             {
-                if(reached == true)
-                {
-                    target = exit.transform.position;
-                    InvokeRepeating("DeleteGroup", 5f, Mathf.Infinity);
-                    return;
-                }
-                reached = true;
                 fire_effect = Instantiate(fire_prefab);
                 fire_effect.transform.position = target_gameobject.transform.position;
-                target_gameobject.transform.parent.transform.parent.transform.position = Vector3.zero;
-                target = new Vector3(gate.position.x, this.transform.position.y,gate.position.z);
+                    
             }
+
+
+            GameObject target_structure = target_gameobject.transform.parent.parent.gameObject;
+            target_structure.transform.position = new Vector3(target_structure.transform.position.x, 0, target_structure.transform.position.z);
+            foreach (Transform t in target_structure.transform) 
+            {
+                if(t.tag == "Ruin") 
+                {
+                    t.gameObject.SetActive(true);
+                }
+            }
+            target = new Vector3(gate.position.x, this.transform.position.y,gate.position.z);
+        }
         
        
     }
 
     void DeleteGroup() 
     {
+        Destroy(fire_effect);
         Destroy(gameObject);
+
     }
 }

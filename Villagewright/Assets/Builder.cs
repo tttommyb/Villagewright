@@ -18,6 +18,7 @@ public class Builder : MonoBehaviour
 
     [SerializeField] private GameObject scroll_bar;
 
+
     public int selection = -1;
     public int current_structure_index = -1;
 
