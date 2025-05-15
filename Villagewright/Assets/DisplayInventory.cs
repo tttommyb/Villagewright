@@ -24,7 +24,11 @@ public class DisplayInventory : MonoBehaviour
 
     void OnEnable()
     {
-        
+        foreach (Transform t in content.transform) 
+        {
+            Destroy(t.gameObject);
+        }
+
         int i = 0;
         foreach(List<GameObject> items in player.GetComponent<Builder>().inventory)
         {
@@ -80,8 +84,8 @@ public class DisplayInventory : MonoBehaviour
             removed_transform.SetParent(removed_icons.transform);
         }
 
+        if (faded) { return; }
         bool allFaded = true;
-
         foreach (List<GameObject> items in player.GetComponent<Builder>().inventory)
         {
             foreach (GameObject item in items)
@@ -127,7 +131,15 @@ public class DisplayInventory : MonoBehaviour
         if (allFaded)
         {
             faded = true;
-            //gameObject.SetActive(false); // or Destroy(gameObject);
+            for(int i = 0; i < 1;)
+            {
+                Destroy(configured_objects[i].gameObject);
+                configured_objects.RemoveAt(i);
+                if(configured_objects.Count == 0)
+                {
+                    i++;
+                }
+            }
         }
 
     }
@@ -153,5 +165,4 @@ public class DisplayInventory : MonoBehaviour
         mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         mat.renderQueue = 3000;
     }
-
 }

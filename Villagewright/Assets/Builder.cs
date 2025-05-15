@@ -1,12 +1,14 @@
 using PostFX;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static UnityEditor.Progress;
+using UnityEngine.UI;
 
 public class Builder : MonoBehaviour
 {
@@ -18,6 +20,10 @@ public class Builder : MonoBehaviour
 
     [SerializeField] private GameObject scroll_bar;
 
+    [SerializeField] private ShadowTurn sundial_script;
+
+    [SerializeField] private Color blue_colour;
+    [SerializeField] private Color red_colour;
 
     public int selection = -1;
     public int current_structure_index = -1;
@@ -39,6 +45,17 @@ public class Builder : MonoBehaviour
     Dictionary<string, List<Vector3>> starting_positions = new Dictionary<string, List<Vector3>>();
     Dictionary<string, List<Quaternion>> starting_rotations = new Dictionary<string, List<Quaternion>>();
 
+    GameObject hovered_structure;
+
+    List<Color> saved_colours = new List<Color>();
+
+    enum MODE
+    {
+        BUILD = 0, MOVE = 1, DELETE = 2
+    }
+
+    MODE current_mode = MODE.BUILD;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -59,22 +76,7 @@ public class Builder : MonoBehaviour
             if (@object.GetComponent<Data>() != null)
             {
 
-               bool dupe = false;
-               foreach(List<GameObject> items in inventory) 
-                {
-                    if (items[0].tag == @object.tag) 
-                    {
-                        items.Add(@object);
-                        dupe = true;
-                        break;
-                    }
-                }
-                if (!dupe) 
-                {
-                    List<GameObject> list = new List<GameObject>();
-                    list.Add(@object);
-                    inventory.Add(list);
-                }
+                addItemToInventory(@object);
             }
         }
 
@@ -83,15 +85,43 @@ public class Builder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        
+
         Camera.main.GetComponent<TiltShift>().Offset = -((Screen.height / 2) - Input.mousePosition.y) / (Screen.height / 2);
         Camera.main.GetComponent<TiltShift>().XOffset = -((Screen.width / 2) - Input.mousePosition.x) / (Screen.width / 2);
+
+        if (Input.GetKey(KeyCode.Q))
+        {
+            player.transform.Rotate(new Vector3(0, 100 * Time.deltaTime, 0));
+        }
+        if (Input.GetKey(KeyCode.E))
+        {
+            player.transform.Rotate(new Vector3(0, -100 * Time.deltaTime, 0));
+        }
 
         if (raid.transform.childCount > 0) 
         {
             return;
         }
-        scroll_bar.SetActive(true);
-        grid_renderer.SetActive(true);
+
+        if (sundial_script.half_cycles > 2)
+        {
+            Debug.LogError(CalculateAccuracy());
+        }
+
+        if (current_mode == MODE.BUILD) 
+        {
+            scroll_bar.SetActive(true);
+        }
+        if(grid_renderer.activeInHierarchy == false)
+        {
+            grid_renderer.SetActive(true);
+            sundial_script.setCycleTime(60f);
+            sundial_script.paused = false;
+            sundial_script.half_cycles = 0;
+
+        }
+        
         //Instantiates the selected object into the scene 
 
         if(current_structure_index != selection) 
@@ -115,38 +145,76 @@ public class Builder : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if (Input.GetKey(KeyCode.Q)) 
-        {
-            player.transform.Rotate(new Vector3(0, 100 * Time.deltaTime, 0));
-        }
-        if (Input.GetKey(KeyCode.E))
-        {
-            player.transform.Rotate(new Vector3(0, -100 * Time.deltaTime, 0));
-        }
+  
         //If the R key is hold then rotate the object with mouse
-        rotation_circle.GetComponent<SpriteRenderer>().enabled = false;
+        rotation_circle.GetComponentsInChildren<SpriteRenderer>()[0].enabled = false;
+        rotation_circle.GetComponentsInChildren<SpriteRenderer>()[1].enabled = false;
 
-
+       
         if (Physics.Raycast(ray, out hit, 1000f, LayerMask.GetMask("Structure")))
         {
             if (hit.point != null && current_structure == null)
             {
-                if (Input.GetMouseButtonDown(0))
+                if (current_mode == MODE.MOVE)
                 {
+                    if (hovered_structure == null)
+                    {
+                        changeColour(blue_colour, hit.collider.gameObject);
+                        hovered_structure = hit.collider.gameObject;
+                    }
+                    if (Input.GetMouseButtonDown(0))
+                    {
 
-                    Debug.Log(hit.collider.gameObject.name);
-                    current_structure = hit.collider.gameObject;
-                    current_structure.GetComponent<BoxCollider>().enabled = false;
-                    return;
+                        Debug.Log(hit.collider.gameObject.name);
+                        current_structure = hit.collider.gameObject;
+                        current_structure.GetComponent<BoxCollider>().enabled = false;
+
+                        return;
+                    }
                 }
+                else if (current_mode == MODE.DELETE)
+                {
+                    if (hovered_structure == null)
+                    {
+                        changeColour(red_colour, hit.collider.gameObject);
+                        hovered_structure = hit.collider.gameObject;
+                    }
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        placed.Remove(hovered_structure);
+                        addItemToInventory(hovered_structure);
+                        scroll_bar.SetActive(false);
+                        scroll_bar.SetActive(true);
+                        hovered_structure.transform.position = new Vector3(hovered_structure.transform.position.x, 0, hovered_structure.transform.position.z);
+
+                    }
+                }
+              
             }
         }
-
-        if (Input.GetKey(KeyCode.R))
+        else if(hovered_structure != null && current_structure == null) 
         {
-            rotation_circle.GetComponent<SpriteRenderer>().enabled = true;
+            int i = 0;
+            Debug.Log(saved_colours.Count);
+            foreach(Material mat in hovered_structure.GetComponent<Renderer>().materials) 
+            {
+                uninitialiseTransparentMaterial(mat);
+                mat.color = saved_colours[i];
+                i++;
+            }
+            saved_colours.Clear();
+            hovered_structure = null;
+        }
+  
+
+        if (Input.GetKey(KeyCode.R) && !Input.GetMouseButton(0))
+        {
+            
             if (current_structure != null)
             {
+                rotation_circle.GetComponentsInChildren<SpriteRenderer>()[0].enabled = true;
+                rotation_circle.GetComponentsInChildren<SpriteRenderer>()[1].enabled = true;
+
                 angle -= Input.mousePositionDelta.x;
 
                 Vector3 euler = current_structure.transform.rotation.eulerAngles;
@@ -189,6 +257,58 @@ public class Builder : MonoBehaviour
         {
           Debug.Log(CalculateAccuracy());
         }
+    }
+
+    public void setBuildMode(int mode) 
+    {
+        switch (mode) 
+        {
+            case 0:
+                current_mode = MODE.BUILD;
+                break;
+            case 1:
+                current_mode = MODE.MOVE;
+                break;
+            case 2:
+                current_mode = MODE.DELETE;
+                break;
+        }
+    }
+
+    public void changeColour(Color new_colour, GameObject game_object) 
+    {
+        Renderer renderer = game_object.GetComponent<Renderer>();
+        foreach(Material mat in renderer.materials) 
+        {
+            initialiseTransparentMaterial(mat);
+            saved_colours.Add(mat.color);
+            mat.color = new_colour;
+        }
+    }
+
+
+    public void initialiseTransparentMaterial(Material mat)
+    {
+        mat.SetFloat("_Mode", 2); // Fade mode
+        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        mat.SetInt("_ZWrite", 0);
+        mat.DisableKeyword("_ALPHATEST_ON");
+        mat.EnableKeyword("_ALPHABLEND_ON");
+        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        mat.renderQueue = 3000;
+    }
+
+    public void uninitialiseTransparentMaterial(Material mat)
+    {
+        mat.SetFloat("_Mode", 0); // Opaque mode
+        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+        mat.SetInt("_ZWrite", 1);
+        mat.EnableKeyword("_ALPHATEST_ON");
+        mat.DisableKeyword("_ALPHABLEND_ON");
+        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        mat.renderQueue = -1; // Use default queue
     }
 
     float CalculateAccuracy() 
@@ -268,6 +388,26 @@ public class Builder : MonoBehaviour
 
     }
 
+
+    void addItemToInventory(GameObject game_object) 
+    {
+        bool dupe = false;
+        foreach (List<GameObject> items in inventory)
+        {
+            if (items[0].tag == game_object.tag)
+            {
+                items.Add(game_object);
+                dupe = true;
+                break;
+            }
+        }
+        if (!dupe)
+        {
+            List<GameObject> list = new List<GameObject>();
+            list.Add(game_object);
+            inventory.Add(list);
+        }
+    }
 
 }
 

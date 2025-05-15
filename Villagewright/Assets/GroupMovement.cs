@@ -9,16 +9,19 @@ public class GroupMovement : MonoBehaviour
     [SerializeField] private Transform gate;
     [SerializeField] private Transform exit;
     private Vector3 attack_target;
-    [SerializeField] private Rigidbody rb;
     [SerializeField] private BoxCollider village_trigger;
 
     private List<GameObject> attack_points;
 
+    private static GameObject[] fires;
+
     [SerializeField] private GameObject fire_prefab;
 
-    [SerializeField] static private GameObject fire_effect;
+    [SerializeField] private GameObject fire_effect;
 
     [SerializeField] private GameObject[] ruins;
+
+    [SerializeField] ShadowTurn sundial_script;
 
 
 
@@ -28,10 +31,11 @@ public class GroupMovement : MonoBehaviour
     bool reached = false;
 
     static int i = 0;
+    static int max_i = 0;
+    int this_i = 0;
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody>();
 
         target = gate.position;
 
@@ -44,8 +48,14 @@ public class GroupMovement : MonoBehaviour
 
         attack_target = attack_points[i].transform.position;
         target_gameobject = attack_points[i];
-        Debug.Log(i);
         i++;
+
+        fires = new GameObject[max_i+1];
+        this_i = i;
+        if(i > max_i) 
+        {
+            max_i = i;
+        }
         if(i >= attack_points.Count) 
         {
             i = 0;
@@ -55,13 +65,15 @@ public class GroupMovement : MonoBehaviour
 
     void Update()
     {
-        Debug.Log(target);   
+        if(sundial_script.half_cycles < 3) { return; }
+        sundial_script.paused = true;   
+
         
         Vector3 force = (target - this.transform.position).normalized;
         force = new Vector3(force.x, 0, force.z);
-        rb.MovePosition(rb.position + (force * Time.deltaTime * 15f));
+        transform.position = transform.position + (force * Time.deltaTime * 15f);
 
-        if (village_trigger.bounds.Contains(rb.transform.position) && reached == false)
+        if (village_trigger.bounds.Contains(transform.position) && reached == false)
         {
             target = new Vector3(attack_target.x, this.transform.position.y, attack_target.z);
         }
@@ -75,13 +87,13 @@ public class GroupMovement : MonoBehaviour
                 return;
             }
             reached = true;
-            if(fire_effect == null) 
+
+            if (fires[this_i] == null)
             {
                 fire_effect = Instantiate(fire_prefab);
+                fires[this_i] = fire_effect;
                 fire_effect.transform.position = target_gameobject.transform.position;
-                    
             }
-
 
             GameObject target_structure = target_gameobject.transform.parent.parent.gameObject;
             target_structure.transform.position = new Vector3(target_structure.transform.position.x, 0, target_structure.transform.position.z);
