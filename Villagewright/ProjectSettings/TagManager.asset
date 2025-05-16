@@ -10,6 +10,8 @@ TagManager:
   - AttackPoint
   - Ruin
   - Fire
+  - SquareHouse
+  - MarketStool
   layers:
   - Default
   - TransparentFX

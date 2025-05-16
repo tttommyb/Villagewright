@@ -32,17 +32,21 @@ public class Builder : MonoBehaviour
     [SerializeField] private Color blue_colour;
     [SerializeField] private Color red_colour;
 
+    [SerializeField] private float build_time;
+
+    [SerializeField] private GameObject star_panel;
+
+
 
     public int selection = -1;
     public int current_structure_index = -1;
 
     public List<List<GameObject>> inventory = new List<List<GameObject>>();
     public List<GameObject> placed = new List<GameObject>();
-    public List<GameObject> all_structures = new List<GameObject>();
 
     [SerializeField] private GameObject player;
 
-    int totalStructures = 0;
+    int total_structures = 0;
 
     float grid_size = 5;
     float angle = 0;
@@ -75,20 +79,20 @@ public class Builder : MonoBehaviour
 
         foreach (GameObject @object in objects)
         {
-            totalStructures++;
-            if (!starting_positions.ContainsKey(@object.tag)) 
-            {
-                starting_positions.Add(@object.tag, new List<Vector3>());
-                starting_rotations.Add(@object.tag, new List<Quaternion>());
-            }
-            starting_positions[@object.tag].Add(@object.transform.position);
-            starting_rotations[@object.tag].Add(@object.transform.rotation);
             if (@object.GetComponent<Data>() != null)
             {
-
+                total_structures++;
+                if (!starting_positions.ContainsKey(@object.tag))
+                {
+                    starting_positions.Add(@object.tag, new List<Vector3>());
+                    starting_rotations.Add(@object.tag, new List<Quaternion>());
+                }
+                starting_positions[@object.tag].Add(@object.transform.position);
+                starting_rotations[@object.tag].Add(@object.transform.rotation);
                 addItemToInventory(@object);
-                all_structures.Add(@object);
             }
+           
+            
         }
        
 
@@ -160,8 +164,8 @@ public class Builder : MonoBehaviour
                     stars = 3;
                 }
             }
-            int i = 0;
-            foreach (Transform t in content.transform)
+            int i = 1;
+            foreach (Transform t in star_panel.transform)
             {
                 if(i == stars)
                 {
@@ -181,7 +185,7 @@ public class Builder : MonoBehaviour
             grid_renderer.SetActive(true);
             if(sundial_script.paused == true)
             {
-                sundial_script.setCycleTime(20f);
+                sundial_script.setCycleTime(build_time);
                 sundial_script.paused = false;
                 sundial_script.light_modifier = 2f;
             }
@@ -194,7 +198,7 @@ public class Builder : MonoBehaviour
         {
             current_structure = inventory[selection].First();
             current_structure_index = selection;
-            current_structure.transform.rotation = player.transform.rotation;
+            current_structure.transform.rotation = Quaternion.Euler(0, player.transform.rotation.y / 45, 0);
         }
         if(current_structure != null) 
         {
@@ -390,7 +394,7 @@ public class Builder : MonoBehaviour
     float CalculateAccuracy() 
     {
         GameObject[] tempObjsArray = new GameObject[placed.Count];
-        if(placed.Count == 0 || placed.Count < all_structures.Count/2)
+        if(placed.Count == 0 || placed.Count < total_structures/2)
         {
             return 0;
         }
@@ -472,7 +476,7 @@ public class Builder : MonoBehaviour
         }
         Debug.Log($"score length: {scores.Length}");
 
-        return Mathf.RoundToInt((Mathf.Clamp01(total / all_structures.Count)) * 100);
+        return Mathf.RoundToInt((Mathf.Clamp01(total / total_structures)) * 100);
 
     }
 

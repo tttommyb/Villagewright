@@ -50,6 +50,8 @@ public class GroupMovement : MonoBehaviour
 
         attack_points = GameObject.FindGameObjectsWithTag("AttackPoint").ToList<GameObject>();
 
+        Debug.LogError(attack_points.Count);
+
         attack_target = attack_points[i].transform.position;
         target_gameobject = attack_points[i];
         i++;
