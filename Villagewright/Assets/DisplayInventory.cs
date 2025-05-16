@@ -14,6 +14,8 @@ public class DisplayInventory : MonoBehaviour
     [SerializeField] private GameObject content;
     [SerializeField] private GameObject removed_icons;
     [SerializeField] private GameObject player;
+    [SerializeField] private GameObject scroll_view;
+    [SerializeField] private GameObject viewport;
     [SerializeField] private Font font;
 
     List<Transform> configured_objects = new List<Transform>();
@@ -24,36 +26,7 @@ public class DisplayInventory : MonoBehaviour
 
     void OnEnable()
     {
-        foreach (Transform t in content.transform) 
-        {
-            Destroy(t.gameObject);
-        }
-
-        int i = 0;
-        foreach(List<GameObject> items in player.GetComponent<Builder>().inventory)
-        {
-            Data inventory_data = items[0].GetComponent<Data>();
-            GameObject image_object = new GameObject("InventoryItem", typeof(RectTransform));
-            image_object.AddComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate { buttonClick(image_object.name); } );
-
-            image_object.AddComponent<UnityEngine.UI.Image>().sprite = inventory_data.icon;
-
-            GameObject text_object = new GameObject();
-            text_object.AddComponent<UnityEngine.UI.Text>().text = "x" + items.Count.ToString();
-            UnityEngine.UI.Text text = text_object.GetComponent<UnityEngine.UI.Text>();
-            text.font = font;
-            text.fontSize = 45;
-            text.alignment = TextAnchor.LowerRight;
-            
-
-            image_object.name = i.ToString();
-            i++;
-            image_object.transform.SetParent(content.transform);
-            text_object.transform.SetParent(image_object.transform);
-
-          
-
-        }
+        initialiseInventory();
     }
 
 
@@ -117,7 +90,6 @@ public class DisplayInventory : MonoBehaviour
                                 if (color.a > 0)
                                 {
                                     color.a -= fade_speed * Time.deltaTime;
-                                    Debug.Log(color.a);
                                     renderer.material.color = color;
                                     allFaded = false; // Still fading
                                 }
@@ -165,4 +137,39 @@ public class DisplayInventory : MonoBehaviour
         mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         mat.renderQueue = 3000;
     }
+
+    public void initialiseInventory()
+    {
+        foreach (Transform t in content.transform)
+        {
+            Destroy(t.gameObject);
+        }
+
+        int i = 0;
+        foreach (List<GameObject> items in player.GetComponent<Builder>().inventory)
+        {
+            Data inventory_data = items[0].GetComponent<Data>();
+            GameObject image_object = new GameObject("InventoryItem", typeof(RectTransform));
+            image_object.AddComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate { buttonClick(image_object.name); });
+
+            image_object.AddComponent<UnityEngine.UI.Image>().sprite = inventory_data.icon;
+
+            GameObject text_object = new GameObject();
+            text_object.AddComponent<UnityEngine.UI.Text>().text = "x" + items.Count.ToString();
+            UnityEngine.UI.Text text = text_object.GetComponent<UnityEngine.UI.Text>();
+            text.font = font;
+            text.fontSize = 45;
+            text.alignment = TextAnchor.LowerRight;
+
+
+            image_object.name = i.ToString();
+            i++;
+            image_object.transform.SetParent(content.transform);
+            text_object.transform.SetParent(image_object.transform);
+
+
+
+        }
+    }
 }
+

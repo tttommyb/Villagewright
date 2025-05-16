@@ -23,6 +23,8 @@ public class GroupMovement : MonoBehaviour
 
     [SerializeField] ShadowTurn sundial_script;
 
+    [SerializeField] AudioSource horn;
+
 
 
     Vector3 target;
@@ -33,6 +35,8 @@ public class GroupMovement : MonoBehaviour
     static int i = 0;
     static int max_i = 0;
     int this_i = 0;
+
+    bool horn_sounded = false;
 
     private void Start()
     {
@@ -65,13 +69,24 @@ public class GroupMovement : MonoBehaviour
 
     void Update()
     {
-        if(sundial_script.half_cycles < 3) { return; }
+        if(sundial_script.getHalfCycles() < 2) { return; }
+        if(GetComponent<AudioSource>().isPlaying == false)
+        {
+            GetComponent<AudioSource>().Play();
+           
+        }
+        if (horn_sounded == false)
+        {
+            horn_sounded = true;
+            horn.Play();
+        }
+
         sundial_script.paused = true;   
 
         
         Vector3 force = (target - this.transform.position).normalized;
         force = new Vector3(force.x, 0, force.z);
-        transform.position = transform.position + (force * Time.deltaTime * 15f);
+        transform.position = transform.position + (force * Time.deltaTime * 45f);
 
         if (village_trigger.bounds.Contains(transform.position) && reached == false)
         {

@@ -19,17 +19,26 @@ public class Builder : MonoBehaviour
     [SerializeField] private GameObject grid_renderer;
 
     [SerializeField] private GameObject scroll_bar;
+    [SerializeField] private GameObject buttons;
 
     [SerializeField] private ShadowTurn sundial_script;
 
+    [SerializeField] private GameObject end_screen;
+    [SerializeField] private GameObject hud_canvas;
+
+    [SerializeField] private AudioSource soundtrack;
+    [SerializeField] private AudioSource place_structure_sound;
+
     [SerializeField] private Color blue_colour;
     [SerializeField] private Color red_colour;
+
 
     public int selection = -1;
     public int current_structure_index = -1;
 
     public List<List<GameObject>> inventory = new List<List<GameObject>>();
     public List<GameObject> placed = new List<GameObject>();
+    public List<GameObject> all_structures = new List<GameObject>();
 
     [SerializeField] private GameObject player;
 
@@ -37,6 +46,7 @@ public class Builder : MonoBehaviour
 
     float grid_size = 5;
     float angle = 0;
+
 
     List<GameObject> objects;
 
@@ -54,7 +64,7 @@ public class Builder : MonoBehaviour
         BUILD = 0, MOVE = 1, DELETE = 2
     }
 
-    MODE current_mode = MODE.BUILD;
+    MODE current_mode = MODE.MOVE;
 
     // Start is called before the first frame update
     void Start()
@@ -77,8 +87,10 @@ public class Builder : MonoBehaviour
             {
 
                 addItemToInventory(@object);
+                all_structures.Add(@object);
             }
         }
+       
 
     }
 
@@ -103,22 +115,76 @@ public class Builder : MonoBehaviour
         {
             return;
         }
-
-        if (sundial_script.half_cycles > 2)
+        if(scroll_bar.activeInHierarchy == false)
         {
+            buttons.GetComponent<CanvasGroup>().alpha = 1;
+            scroll_bar.SetActive(true);
+        }
+
+        if (soundtrack.isPlaying == false)
+        {
+            soundtrack.Play();
+        }
+
+
+        if (sundial_script.getHalfCycles() > 3)
+        {
+            end_screen.SetActive(true);
+            hud_canvas.SetActive(false);
+            sundial_script.paused = true;
+            float score = CalculateAccuracy();
+            string enabled_contents = "Failed Contents";
+            GameObject content = null;
+            if(score > 50)
+            {
+                enabled_contents = "Passed Contents";
+
+            }
+            foreach(Transform t in end_screen.transform)
+            {
+                if(t.name == enabled_contents)
+                {
+                    t.gameObject.SetActive(true);
+                    content = t.gameObject;
+                }
+            }
+            int stars = 1;
+            if(enabled_contents == "Passed Contents")
+            {
+                if(score > 75)
+                {
+                    stars = 2;
+                }
+                if(score == 100)
+                {
+                    stars = 3;
+                }
+            }
+            int i = 0;
+            foreach (Transform t in content.transform)
+            {
+                if(i == stars)
+                {
+                    t.gameObject.SetActive(true);
+                    i++;
+                    break;
+                }
+                i++;
+            }
+            
             Debug.LogError(CalculateAccuracy());
         }
 
-        if (current_mode == MODE.BUILD) 
-        {
-            scroll_bar.SetActive(true);
-        }
+      
         if(grid_renderer.activeInHierarchy == false)
         {
             grid_renderer.SetActive(true);
-            sundial_script.setCycleTime(60f);
-            sundial_script.paused = false;
-            sundial_script.half_cycles = 0;
+            if(sundial_script.paused == true)
+            {
+                sundial_script.setCycleTime(20f);
+                sundial_script.paused = false;
+                sundial_script.light_modifier = 2f;
+            }
 
         }
         
@@ -174,17 +240,17 @@ public class Builder : MonoBehaviour
                 }
                 else if (current_mode == MODE.DELETE)
                 {
+
                     if (hovered_structure == null)
                     {
                         changeColour(red_colour, hit.collider.gameObject);
                         hovered_structure = hit.collider.gameObject;
                     }
-                    if (Input.GetMouseButtonDown(0))
+                    if (Input.GetMouseButtonDown(0) && hovered_structure != null)
                     {
-                        placed.Remove(hovered_structure);
+                        Debug.Log(placed.Remove(hovered_structure));
                         addItemToInventory(hovered_structure);
-                        scroll_bar.SetActive(false);
-                        scroll_bar.SetActive(true);
+                        scroll_bar.GetComponentInChildren<DisplayInventory>().initialiseInventory();
                         hovered_structure.transform.position = new Vector3(hovered_structure.transform.position.x, 0, hovered_structure.transform.position.z);
 
                     }
@@ -205,7 +271,16 @@ public class Builder : MonoBehaviour
             saved_colours.Clear();
             hovered_structure = null;
         }
-  
+
+        if (current_mode == MODE.BUILD)
+        {
+            scroll_bar.GetComponent<CanvasGroup>().alpha = 1;
+        }
+        else
+        {
+            scroll_bar.GetComponent<CanvasGroup>().alpha = 0;
+        }
+
 
         if (Input.GetKey(KeyCode.R) && !Input.GetMouseButton(0))
         {
@@ -238,6 +313,7 @@ public class Builder : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && current_structure != null) 
         {
+            place_structure_sound.Play();
             current_structure.GetComponent<BoxCollider>().enabled = true;
             foreach (List<GameObject> items in inventory)
             {
@@ -313,8 +389,12 @@ public class Builder : MonoBehaviour
 
     float CalculateAccuracy() 
     {
-        GameObject[] tempObjsArray = new GameObject[objects.Count];
-        objects.CopyTo(tempObjsArray);
+        GameObject[] tempObjsArray = new GameObject[placed.Count];
+        if(placed.Count == 0 || placed.Count < all_structures.Count/2)
+        {
+            return 0;
+        }
+        placed.CopyTo(tempObjsArray);
         List<GameObject> tempObjs = tempObjsArray.ToList();
 
 
@@ -372,11 +452,17 @@ public class Builder : MonoBehaviour
         float[] scores = new float[distances.Count];
         for(int i = 0; i < distances.Count; i++)
         {
+
             float position_score = Mathf.Clamp01(1f - (distances[i] / 20f));
             float rotation_score = Mathf.Clamp01(1f - (angles[i] / 180f));
 
             float final_score = (position_score * 0.8f + rotation_score * 0.2f);
+            if (distances[i] > 4)
+            {
+                final_score = 20;
+            }
             scores[i] = final_score;
+            
         }
 
         float total = 0;
@@ -384,7 +470,9 @@ public class Builder : MonoBehaviour
         {
             total += score;    
         }
-        return Mathf.RoundToInt((total / scores.Length) * 100);
+        Debug.Log($"score length: {scores.Length}");
+
+        return Mathf.RoundToInt((Mathf.Clamp01(total / all_structures.Count)) * 100);
 
     }
 
