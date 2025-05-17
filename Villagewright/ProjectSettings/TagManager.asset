@@ -12,6 +12,7 @@ TagManager:
   - Fire
   - SquareHouse
   - MarketStool
+  - Tower
   layers:
   - Default
   - TransparentFX

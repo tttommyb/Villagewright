@@ -501,6 +501,29 @@ public class Builder : MonoBehaviour
         }
     }
 
+    public void nextLevel()
+    {
+        if(SceneManager.GetActiveScene().buildIndex + 1 >= SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadScene(0);
+            return;
+
+        }
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    }
+
+    public void returnToMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
+
+    }
+
+    public void replayScene()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
+    }
+
 }
 
 

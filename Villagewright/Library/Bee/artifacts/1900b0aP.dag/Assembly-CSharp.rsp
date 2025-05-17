@@ -326,11 +326,13 @@
 "Assets/DisplayInventory.cs"
 "Assets/GridRenderer.cs"
 "Assets/GroupMovement.cs"
+"Assets/Menu.cs"
 "Assets/Polyart/PolyartStudio/SharedResources/Scripts/Gameplay/MillRotate.cs"
 "Assets/Polyart/PolyartStudio/SharedResources/Scripts/Misc/Cull_Lights.cs"
 "Assets/Polyart/PolyartStudio/SharedResources/Scripts/Misc/Cull_Particles.cs"
 "Assets/Spin.cs"
 "Assets/TiltShift-master/TiltShift-master/Tilt Shift/Scripts/TiltShift.cs"
+"Assets/UI/ShadowTurn.cs"
 -langversion:9.0
 
 /deterministic

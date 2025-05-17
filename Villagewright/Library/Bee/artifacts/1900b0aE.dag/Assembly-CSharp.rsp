@@ -393,6 +393,7 @@
 "Assets/DisplayInventory.cs"
 "Assets/GridRenderer.cs"
 "Assets/GroupMovement.cs"
+"Assets/Menu.cs"
 "Assets/Polyart/PolyartStudio/SharedResources/Scripts/Gameplay/MillRotate.cs"
 "Assets/Polyart/PolyartStudio/SharedResources/Scripts/Misc/Cull_Lights.cs"
 "Assets/Polyart/PolyartStudio/SharedResources/Scripts/Misc/Cull_Particles.cs"

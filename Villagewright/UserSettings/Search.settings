@@ -19,6 +19,9 @@ scopes = {
 	"last_search.45C55C1A" = ""
 	"OpenInspectorPreview.45C55C1A" = "0"
 	"currentGroup.45C55C1A" = "asset"
+	"last_search.8DF93128" = "h:t:GameObject #m_Layer=6"
+	"OpenInspectorPreview.8DF93128" = "0"
+	"currentGroup.8DF93128" = null
 }
 providers = {
 	find = {
